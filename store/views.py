@@ -3,7 +3,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import Product
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from .models import Product, Cart, CartItem
+from .forms import ProductForm
+
+staff_required = user_passes_test(lambda u: u.is_staff, login_url='login')
 
 # --- 1. الرئيسية والتفاصيل ---
 def store_home(request):
@@ -44,28 +49,59 @@ def logout_view(request):
     logout(request)
     return redirect('store_home')
 
-# --- 3. السلة (تمت إضافة remove_from_cart) ---
+# --- 3. السلة ---
+def _get_cart(user):
+    cart, _ = Cart.objects.get_or_create(user=user)
+    return cart
+
+@login_required
 def cart_view(request):
-    return render(request, 'store/cart.html')
+    cart = _get_cart(request.user)
+    items = cart.items.select_related('product')
+    total = sum(item.get_total_price() for item in items)
+    return render(request, 'store/cart.html', {'items': items, 'total': total})
 
-def add_to_cart(request, pk):
+@login_required
+def add_to_cart(request, product_id):   # الاسم لازم يطابق <int:product_id> في urls.py
+    product = get_object_or_404(Product, pk=product_id)
+    cart = _get_cart(request.user)
+    item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+    if not created:
+        item.quantity += 1
+        item.save()
     return redirect('cart_view')
 
+@login_required
 def remove_from_cart(request, item_id):
+    item = get_object_or_404(CartItem, pk=item_id, cart__user=request.user)
+    item.delete()
     return redirect('cart_view')
 
-def update_cart(request, item_id):
-    return redirect('cart_view')
-
-# --- 4. إدارة المنتجات ---
+# --- 4. إدارة المنتجات (للمطور/الأدمن فقط) ---
+@staff_required
 def developer_add_product(request):
-    return render(request, 'store/add_product.html')
+    form = ProductForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('store_home')
+    return render(request, 'store/add_product.html', {'form': form})
 
+@staff_required
 def developer_edit_product(request, pk):
-    return render(request, 'store/edit_product.html')
+    product = get_object_or_404(Product, pk=pk)
+    form = ProductForm(request.POST or None, request.FILES or None, instance=product)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('store_home')
+    return render(request, 'store/edit_product.html', {'form': form, 'product': product})
 
+@staff_required
 def developer_delete_product(request, pk):
-    return render(request, 'store/delete_product_confirm.html')
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        return redirect('store_home')
+    return render(request, 'store/delete_product_confirm.html', {'product': product})
 
 # --- 5. الشات بوت الذكي AI ---
 def ai_chatbot(request):

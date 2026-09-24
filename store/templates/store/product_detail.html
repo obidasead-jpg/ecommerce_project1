@@ -1,0 +1,47 @@
+{% extends 'store/base.html' %}
+
+{% block title %}{{ product.name }} - Obida Store{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 3rem auto;">
+    <div class="product-card" style="padding: 2.5rem; display: flex; gap: 2rem; flex-wrap: wrap; align-items: center;">
+        {% if product.image %}
+            <div style="flex: 1; min-width: 250px;">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; border-radius: 12px; object-fit: cover; max-height: 350px;">
+            </div>
+        {% endif %}
+        
+        <div style="flex: 1.2; min-width: 280px; display: flex; flex-direction: column; gap: 1rem;">
+            <h2 style="font-size: 1.8rem;">{{ product.name }}</h2>
+            <div class="price-tag" style="font-size: 1.5rem;">${{ product.price }}</div>
+            
+            <div>
+                <strong>المقاسات المتوفرة:</strong>
+                <div style="margin-top: 0.5rem;">
+                    {% for size in sizes_list %}
+                        <span class="badge-size">{{ size }}</span>
+                    {% empty %}
+                        <span style="color: #9CA3AF;">فري سايز (مقاس موحد)</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <strong>الوصف والتفاصيل:</strong>
+                <p style="color: #D1D5DB; margin-top: 0.5rem; line-height: 1.6;">
+                    {{ product.description|default:"لا يوجد وصف إضافي للمنتج." }}
+                </p>
+            </div>
+
+            <a href="{% url 'add_to_cart' product.id %}" class="btn-primary" style="text-align: center; margin-top: 1rem;">إضافة إلى سلة التسوق 🛒</a>
+
+            {% if user.is_staff %}
+                <div style="display: flex; gap: 1rem; margin-top: 1rem; border-top: 1px solid #374151; padding-top: 1rem;">
+                    <a href="{% url 'developer_edit_product' product.id %}" class="btn-warning" style="flex: 1; text-align: center;">تعديل المنتج ✏️</a>
+                    <a href="{% url 'developer_delete_product' product.id %}" class="btn-danger" style="flex: 1; text-align: center;">حذف المنتج 🗑️</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

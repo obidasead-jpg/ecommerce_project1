@@ -1,0 +1,14 @@
+{% extends 'store/base.html' %}
+
+{% block title %}إضافة منتج جديد{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>إضافة منتج جديد ➕</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-submit">نشر المنتج</button>
+    </form>
+</div>
+{% endblock %}

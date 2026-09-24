@@ -1,0 +1,17 @@
+{% extends 'store/base.html' %}
+
+{% block title %}حساب جديد - TechWitPro{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 450px; margin-top: 3rem;">
+    <div class="product-card" style="padding: 2.5rem;">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;">إنشاء حساب جديد</h2>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1rem; background: transparent; border: none; padding: 0;">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-primary" style="margin-top: 1rem;">تسجيل الحساب</button>
+        </form>
+        <p style="margin-top: 1.5rem; text-align: center;">لديك حساب بالفعل؟ <a href="{% url 'login' %}" style="color: var(--color-caribbean-green);">تسجيل الدخول</a></p>
+    </div>
+</div>
+{% endblock %}

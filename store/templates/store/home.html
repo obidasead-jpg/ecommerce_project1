@@ -1,0 +1,155 @@
+{% extends 'store/base.html' %}
+
+{% block title %}الرئيسية - Obida Store{% endblock %}
+
+{% block content %}
+<!-- تنسيقات مرنة تجعل الإطار يأخذ شكل الصورة بالضبط بدون مساحات فارغة -->
+<style>
+    .product-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+        gap: 20px !important;
+        margin-top: 20px !important;
+        align-items: start !important; /* يمنع شد الكروت المجاورة لتظل كل بطاقة بحجمها الطبيعي */
+    }
+
+    .product-card {
+        background-color: #1E293B !important;
+        border: 1px solid #334155 !important;
+        border-radius: 14px !important;
+        padding: 16px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    /* حاوي الصورة: بدون ارتفاع ثابت، مرن تماماً مع أبعاد الصورة */
+    .image-container {
+        width: 100% !important;
+        height: auto !important; /* يلغي الصندوق الثابت */
+        background-color: transparent !important; /* إزالة الخلفية الداكنة لتلتحم الصورة بالإطار */
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* الصورة تتطابق 100% وتحدد شكل القالب بنفسها */
+    .product-card-img {
+        width: 100% !important;
+        height: auto !important; /* الارتفاع يتشكل تلقائياً بناءً على الصورة المرفوعة */
+        display: block !important;
+        border-radius: 8px !important;
+    }
+
+    .product-title {
+        color: #FFFFFF !important;
+        font-size: 1.15rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 4px !important;
+    }
+
+    .price-tag {
+        color: #10B981 !important;
+        font-size: 1.2rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 6px !important;
+    }
+
+    .product-desc {
+        color: #94A3B8 !important;
+        font-size: 0.85rem !important;
+        margin-bottom: 12px !important;
+        line-height: 1.4 !important;
+    }
+
+    /* الأزرار */
+    .btn-detail {
+        background-color: #2563EB !important;
+        color: #FFFFFF !important;
+        text-align: center !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+        text-decoration: none !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        display: block !important;
+    }
+
+    .btn-cart {
+        background-color: #10B981 !important;
+        color: #FFFFFF !important;
+        text-align: center !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+        text-decoration: none !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        display: block !important;
+    }
+
+    .btn-edit {
+        background-color: #F59E0B !important;
+        color: #FFFFFF !important;
+        text-align: center !important;
+        padding: 8px !important;
+        border-radius: 6px !important;
+        text-decoration: none !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        flex: 1 !important;
+    }
+
+    .btn-delete {
+        background-color: #EF4444 !important;
+        color: #FFFFFF !important;
+        text-align: center !important;
+        padding: 8px !important;
+        border-radius: 6px !important;
+        text-decoration: none !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        flex: 1 !important;
+    }
+</style>
+
+<div style="margin-bottom: 1.5rem; text-align: center;">
+    <h1 style="color: #FFFFFF; font-size: 2rem; font-weight: 800;">معرض المنتجات</h1>
+</div>
+
+<div class="product-grid">
+    {% for product in products %}
+        <div class="product-card">
+            <div>
+                <div class="image-container">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-card-img">
+                    {% else %}
+                        <div style="padding: 30px; background: #0F172A; text-align: center; color: #64748B; font-size: 0.85rem; border-radius: 8px;">لا توجد صورة</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <div class="price-tag">${{ product.price }}</div>
+                    <p class="product-desc">{{ product.description|truncatewords:10|default:"لا يوجد وصف إضافي" }}</p>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                <a href="{% url 'product_detail' product.id %}" class="btn-detail">عرض التفاصيل والمقاسات 🔍</a>
+                <a href="{% url 'add_to_cart' product.id %}" class="btn-cart">إضافة للسلة 🛒</a>
+                
+                {% if user.is_staff %}
+                    <div style="display: flex; gap: 6px; margin-top: 4px;">
+                        <a href="{% url 'developer_edit_product' product.id %}" class="btn-edit">تعديل ✏️</a>
+                        <a href="{% url 'developer_delete_product' product.id %}" class="btn-delete">حذف 🗑️</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p style="grid-column: 1/-1; text-align: center; color: #94A3B8;">لا توجد منتجات معروضة حالياً.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

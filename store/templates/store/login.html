@@ -1,0 +1,17 @@
+{% extends 'store/base.html' %}
+
+{% block title %}تسجيل الدخول - TechWitPro{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 450px; margin-top: 3rem;">
+    <div class="product-card" style="padding: 2.5rem;">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;">تسجيل الدخول</h2>
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1rem; background: transparent; border: none; padding: 0;">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-primary" style="margin-top: 1rem;">دخول</button>
+        </form>
+        <p style="margin-top: 1.5rem; text-align: center;">ليس لديك حساب؟ <a href="{% url 'register' %}" style="color: var(--color-caribbean-green);">أنشئ حساباً جديداً</a></p>
+    </div>
+</div>
+{% endblock %}

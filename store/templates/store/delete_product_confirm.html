@@ -1,0 +1,18 @@
+{% extends 'store/base.html' %}
+
+{% block title %}تأكيد الحذف{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 4rem auto;">
+    <div class="product-card" style="padding: 2.5rem; text-align: center;">
+        <h2 style="color: #EF4444; margin-bottom: 1rem;">تأكيد الحذف ⚠️</h2>
+        <p>هل أنت تأكد من أنك تريد حذف المنتج <strong>"{{ product.name }}"</strong>؟</p>
+        
+        <form method="POST" style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: center; background: transparent; border: none;">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger">نعم، احذف المنتج</button>
+            <a href="{% url 'store_home' %}" class="btn-primary" style="background: #4B5563;">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

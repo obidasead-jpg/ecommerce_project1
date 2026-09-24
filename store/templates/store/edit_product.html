@@ -1,0 +1,14 @@
+{% extends 'store/base.html' %}
+
+{% block title %}تعديل المنتج{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>تعديل بيانات المنتج ✏️</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-submit" style="background-color: #F59E0B;">حفظ التعديلات</button>
+    </form>
+</div>
+{% endblock %}

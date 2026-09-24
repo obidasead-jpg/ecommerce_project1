@@ -1,0 +1,36 @@
+{% extends 'store/base.html' %}
+
+{% block title %}سلة التسوق - Obida Store{% endblock %}
+
+{% block content %}
+<div style="margin-top: 2.5rem; max-width: 800px; margin-inline: auto;">
+    <h2>سلة التسوق 🛒</h2>
+    <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        {% for item in items %}
+            <div class="product-card" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h4>{{ item.product.name }}</h4>
+                    <p style="color: #9CA3AF;">الكمية: {{ item.quantity }}</p>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div class="price-tag">${{ item.get_total_price }}</div>
+                    <a href="{% url 'remove_from_cart' item.id %}" class="btn-danger">إلغاء / حذف 🗑️</a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="product-card" style="text-align: center; padding: 3rem;">
+                <p>السلة فارغة حالياً.</p>
+                <a href="{% url 'store_home' %}" class="btn-primary" style="margin-top: 1rem; display: inline-block;">تصفح المنتجات</a>
+            </div>
+        {% endfor %}
+    </div>
+    
+    {% if items %}
+        <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <h3>الإجمالي النهائي: <span style="color: #10B981;">${{ total }}</span></h3>
+            <button class="btn-primary">إتمام الشراء 💳</button>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Obida Store{% endblock %}</title>
+    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'store/css/styles.css' %}">
+</head>
+<body>
+
+    <div class="container">
+        <nav class="navbar">
+            <a href="{% url 'store_home' %}" class="navbar-brand">Obida Store 🍉</a>
+            
+            <div class="nav-links">
+                <a href="{% url 'store_home' %}">الرئيسية</a>
+                <a href="{% url 'cart_view' %}">السلة 🛒</a>
+                
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'developer_add_product' %}" style="color: #10B981;">+ إضافة منتج</a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}">خروج ({{ user.username }})</a>
+                {% else %}
+                    <a href="{% url 'login' %}">تسجيل الدخول</a>
+                    <a href="{% url 'register' %}">حساب جديد</a>
+                {% endif %}
+
+                <button class="ai-btn" id="open-ai-btn">
+                    <span>Obida AI 🤖</span>
+                </button>
+            </div>
+        </nav>
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- نافذة الشات بوت AI Modal -->
+    <div class="modal-overlay" id="ai-modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: #10B981; font-weight: 800;">المساعد الذكي Obida AI 🤖</h3>
+                <button id="close-ai-btn" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">✕</button>
+            </div>
+            
+            <div id="chat-box" style="height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; background: #0F172A; padding: 14px; border-radius: 10px; border: 1px solid #334155;">
+                <p><strong style="color: #10B981;">AI:</strong> أهلاً بك في Obida Store! كيف يمكنني مساعدتك؟</p>
+            </div>
+
+            <form id="ai-form" style="margin-top: 1rem; display: flex; gap: 0.5rem; background: transparent; border: none; padding: 0;">
+                {% csrf_token %}
+                <input type="text" id="ai-input" placeholder="اسأل عن أي منتج، سعر، أو مقاس..." required style="flex: 1; margin: 0; background: #0F172A; border: 1px solid #475569; color: white; padding: 10px; border-radius: 8px;">
+                <button type="submit" class="btn-cart" style="padding: 10px 16px; border: none; cursor: pointer;">إرسال</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('ai-modal');
+        const openBtn = document.getElementById('open-ai-btn');
+        const closeBtn = document.getElementById('close-ai-btn');
+        const aiForm = document.getElementById('ai-form');
+        const aiInput = document.getElementById('ai-input');
+        const chatBox = document.getElementById('chat-box');
+
+        if(openBtn) openBtn.addEventListener('click', () => modal.style.display = 'flex');
+        if(closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
+
+        // التعامل الصحيح مع الشات بوت وتفادي إعادة التحميل
+        aiForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // منع إعادة تحميل الصفحة
+            
+            const query = aiInput.value.trim();
+            if (!query) return;
+
+            // 1. إظهار سؤال المستخدم
+            chatBox.innerHTML += `<p><strong style="color: #2563EB;">أنت:</strong> ${query}</p>`;
+            aiInput.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // 2. إرسال السؤال إلى السيرفر
+                const response = await fetch("{% url 'ai_chatbot' %}", {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}' 
+                    },
+                    body: JSON.stringify({ message: query })
+                });
+
+                const data = await response.json();
+                
+                // 3. عرض الرد الحقيقي القادم من دالة views.py
+                chatBox.innerHTML += `<p><strong style="color: #10B981;">AI:</strong> ${data.reply}</p>`;
+            } catch (err) {
+                chatBox.innerHTML += `<p style="color: #EF4444;"><strong>AI:</strong> حدث خطأ أثناء الاتصال، حاول مرة أخرى.</p>`;
+            }
+            
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+  <!-- زر الدردشة العائم وتصميم النافذة المنبثقة -->
+<div id="ai-chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: Arial, sans-serif;">
+    <!-- زر فتح/إغلاق الشات -->
+    <button id="chat-toggle-btn" onclick="toggleChat()" style="background-color: #007bff; color: white; border: none; border-radius: 50px; padding: 12px 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-size: 16px;">
+        💬 مساعد المتجر
+    </button>
+
+    <!-- صندوق المحادثة (مخفي افتراضياً) -->
+    <div id="chat-box" style="display: none; width: 320px; height: 400px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); flex-direction: column; overflow: hidden; margin-bottom: 10px;">
+        <!-- رأس صندوق الشات -->
+        <div style="background: #007bff; color: white; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+            <span>مساعد التسوق الذكي</span>
+            <button onclick="toggleChat()" style="background: none; border: none; color: white; font-size: 16px; cursor: pointer;">✕</button>
+        </div>
+        <!-- سجل الرسائل -->
+        <div id="chat-messages" style="flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 14px; background: #f8f9fa;">
+            <div style="background: #e9ecef; padding: 8px 12px; border-radius: 8px; align-self: flex-start; max-width: 80%;">
+                أهلاً بك! كيف يمكنني مساعدتك في التسوق اليوم؟
+            </div>
+        </div>
+        <!-- حقل إدخال الرسالة -->
+        <div style="padding: 10px; border-top: 1px solid #ddd; display: flex; background: white;">
+            <input type="text" id="chat-input" placeholder="اكتب استفسارك هنا..." onkeypress="handleKeyPress(event)" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none;">
+            <button onclick="sendMessage()" style="background: #007bff; color: white; border: none; padding: 8px 12px; margin-right: 5px; border-radius: 4px; cursor: pointer;">إرسال</button>
+        </div>
+    </div>
+</div>
+
+<!-- سكريبت التشغيل والتفاعل (JavaScript) -->
+<script>
+    function toggleChat() {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.style.display = chatBox.style.display === 'none' ? 'flex' : 'none';
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    async function sendMessage() {
+        const inputField = document.getElementById('chat-input');
+        const messageContainer = document.getElementById('chat-messages');
+        const userText = inputField.value.trim();
+
+        if (!userText) return;
+
+        // إضافة رسالة المستخدم للواجهة
+        messageContainer.innerHTML += `<div style="background: #007bff; color: white; padding: 8px 12px; border-radius: 8px; align-self: flex-end; max-width: 80%;">${userText}</div>`;
+        inputField.value = '';
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+
+        // رسالة مؤقتة تدل على جاري الكتابة
+        const loadingId = 'loading-' + Date.now();
+        messageContainer.innerHTML += `<div id="${loadingId}" style="background: #e9ecef; padding: 8px 12px; border-radius: 8px; align-self: flex-start; color: #6c757d;">جاري الكتابة...</div>`;
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+
+        try {
+            const response = await fetch('/api/chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: userText })
+            });
+
+            const data = await response.json();
+            
+            // إزالة رسالة التحميل
+            document.getElementById(loadingId).remove();
+
+            if (data.reply) {
+                messageContainer.innerHTML += `<div style="background: #e9ecef; color: #333; padding: 8px 12px; border-radius: 8px; align-self: flex-start; max-width: 80%; white-space: pre-wrap;">${data.reply}</div>`;
+            } else {
+                messageContainer.innerHTML += `<div style="background: #f8d7da; color: #721c24; padding: 8px 12px; border-radius: 8px; align-self: flex-start;">عذراً، حدث خطأ ما. يجدر المحاولة لاحقاً.</div>`;
+            }
+        } catch (error) {
+            document.getElementById(loadingId).remove();
+            messageContainer.innerHTML += `<div style="background: #f8d7da; color: #721c24; padding: 8px 12px; border-radius: 8px; align-self: flex-start;">فشل الاتصال بالخادم.</div>`;
+        }
+        
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<h3>Product Catalog</h3>
+
+<!-- Dynamic Filter Form -->
+<form method="GET" action="" style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <input type="text" name="q" placeholder="Search products..." value="{{ search_query }}">
+    <select name="category">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+</form>
+
+<div class="product-grid">
+    {% for product in products %}
+        <div class="product-card">
+            <h4>{{ product.name }}</h4>
+            <p>Category: {{ product.category.name }}</p>
+            <p><strong>${{ product.price }}</strong></p>
+            <a href="{% url 'product_detail' product.slug %}">View Details</a>
+            <button class="ai-btn open-ai-btn" data-product-id="{{ product.id }}">✨ Get Recommendations</button>
+        </div>
+    {% empty %}
+        <p>No products found.</p>
+    {% endfor %}
+</div>
+{% endblock %}
